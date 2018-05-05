@@ -23,14 +23,15 @@ class Db
             $db = new PDO("mysql:host={$dbparams['host']};dbname={$dbparams['dbname']};port={$dbparams['dbport']}", $dbparams['user'], $dbparams['password']);
             $db->exec("set names utf8");
         } catch (PDOException $e) {
-            echo '<p>Error connection to database!</p>';
+            header("Location: ". $_SERVER['HTTP_REFERER']);
+            die();
         }
         return $db;
     }
 
     protected function createStructure()
     {
-        $pdo = Db::connect();
+        if (!$pdo = Db::connect()) return false;
         $r = $pdo->query("DROP TABLE IF EXISTS anydays;");
         $r = $pdo->query("  CREATE TABLE anydays (
                             `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -44,7 +45,7 @@ class Db
 
     protected function insertTestData()
     {
-        $pdo = Db::connect();
+        if (!$pdo = Db::connect()) return false;
         $r = $pdo->query("  INSERT INTO anydays (anyd_day, anyd_month, anyd_year) VALUES
                             (02,11,1988),
                             (05,09,1988),
@@ -60,7 +61,7 @@ class Db
 
     public static function getData()
     {
-        $pdo = Db::connect();
+        if (!$pdo = Db::connect()) return false;
         $r = $pdo->prepare("SELECT anyd_day `day`, anyd_month `month`, anyd_year `year` FROM anydays LIMIT 15;");
         $r->setFetchMode(PDO::FETCH_ASSOC);
         return $r->execute()? $r->fetchAll() : false;
